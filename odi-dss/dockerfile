@@ -1,0 +1,38 @@
+######
+# Tag with: odi-dss
+######
+
+FROM centos:7
+
+ADD create-odiuser /root/create-odiuser
+## Need HSI, HTAR binaries, copy of the DSS codebase
+COPY hsi/hsi /usr/bin/hsi
+COPY hsi/htar /usr/bin/htar
+RUN /root/create-odiuser
+RUN ls -lash /home
+COPY ODIUSER_bashrc /home/odiuser/.bashrc
+COPY ODITEST_bashrc /home/oditest/.bashrc
+RUN mkdir /usr/local/dss
+COPY /usr/local/dss/bin/* /usr/local/dss/
+RUN mkdir /usr/local/listener
+COPY listener/listener.py /usr/local/listener/listener.py
+RUN mkdir /usr/local/wn/
+RUN yum -y install epel-release
+RUN yum -y makecache
+RUN yum -y install libssh2 libssh2-devel MySQL-python git python-pip python-urllib2 python2-httplib2 libxml2-python python2-dateutil 
+
+
+RUN /usr/bin/pip install pika sensu_plugin pyfits
+RUN chown -R odiuser:odi /usr/local/dss
+
+
+
+COPY functions /functions
+COPY run-odi.sh /run-odi.sh
+COPY run-thaw.sh /run-thaw.sh
+COPY dummy.sh /dummy.sh
+COPY hsirc /home/odiuser/.hsirc
+RUN chown -R odiuser:odi /home/odiuser
+USER odiuser
+ENTRYPOINT ["/run-odi.sh"]
+

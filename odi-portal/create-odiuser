@@ -1,0 +1,16 @@
+#! /bin/bash
+
+ODIGID=1234
+ODIUSER=4321
+ODITEST=4322
+
+
+groupadd -g ${ODIGID} odi
+useradd -g odi -u ${ODIUSER}  odiuser
+useradd -g odi -u ${ODITEST}  oditest
+mkdir -p /home/odiuser
+mkdir -p /home/oditest
+chown -R odiuser:odi /home/odiuser
+chown -R oditest:odi /home/oditest
+
+

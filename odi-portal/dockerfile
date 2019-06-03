@@ -1,0 +1,34 @@
+######
+# Tag with: odi-portal
+######
+
+FROM centos-php-zend-odi
+## replace node npm with just nodejs due to packaging changes.
+RUN yum -y install mailx ssmtp git nodejs
+ADD create-odiuser /root/create-odiuser
+RUN /root/create-odiuser
+RUN chown -R odiuser:odi /var/lib/php
+RUN /usr/bin/pip install pika pyfits
+RUN mkdir /usr/local/portal
+RUN npm -g install bower
+## Need a copy of portal codebase
+COPY odi-portal-272.tgz /root/odi-portal.tgz
+RUN tar xzf /root/odi-portal.tgz -C /usr/local/portal/
+RUN cd /usr/local/portal && git clone git@github.iu.edu:odi/portal prod2.7.2
+RUN cd /usr/local/portal/public && bower --allow-root install
+RUN cd /usr/local/portal/library && php composer.phar install
+RUN mkdir /usr/local/listener
+COPY listener/listener.py /usr/local/listener/listener.py
+RUN chown -R odiuser:odi /usr/local/portal
+RUN chown -R odiuser:odi /usr/local/listener
+RUN ls -lash /usr/local/portal/
+ADD functions /root/functions
+ADD run-odi.sh /root/run-odi.sh
+RUN mkdir -p /opt/sca/var/log
+RUN yum -y install cronie-anacron
+RUN touch /var/log/cron.log
+## Putting this here rather than in a bind mount since we need to run crontab against it to pick it up
+COPY odi-portal-notifications.cron /etc/cron.d/0odi-portal-notifications
+RUN /usr/bin/crontab /etc/cron.d/0odi-portal-notifications
+CMD ["/root/run-odi.sh"]
+

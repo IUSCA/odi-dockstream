@@ -1,0 +1,19 @@
+######
+# Tag with: centos-php-zend-odi
+# Base container for centos7+php+zend+some pecls
+######
+
+FROM centos/httpd
+
+
+RUN curl --silent --location https://rpm.nodesource.com/setup_8.x | bash -
+
+
+RUN yum makecache && yum -y install epel-release
+RUN yum makecache && yum -y install libssh2 libssh2-devel php-mysql mod_ssl php-pecl-ssh2 php php-ZendFramework php-ZendFramework-Db-Adapter-Pdo.noarch php-ZendFramework-Db-Adapter-Pdo-Mysql.noarch php-ZendFramework-Captcha MySQL-python nodejs git python-pip python-urllib2 python2-httplib2 libxml2-python python2-dateutil
+COPY librabbitmq-0.5.2-1.el6.x86_64.rpm /root/librabbitmq-0.5.2-1.el6.x86_64.rpm
+## Hacky, but needed to get php-pecl-amqp to work
+RUN rpm -i /root/librabbitmq-0.5.2-1.el6.x86_64.rpm
+RUN yum -y install php-pecl-amqp
+CMD ["/run-httpd.sh"]
+

@@ -1,0 +1,21 @@
+FROM centos:7
+
+RUN yum -y install epel-release && yum -y makecache
+
+RUN yum -y install libxml2-python python-pip
+
+RUN /usr/bin/pip install pika mailinglogger
+
+
+ADD create-odiuser /root/create-odiuser
+RUN /root/create-odiuser
+RUN mkdir /usr/local/wn
+RUN mkdir /usr/local/listener
+COPY listener/listener.py /usr/local/listener/listener.py
+COPY wn/WNGEN1/runjob/ /usr/local/wn
+RUN mkdir -p /usr/local/var/log
+RUN chown -R odiuser:odi /usr/local/var/log/
+RUN chown -R odiuser:odi /usr/local/wn
+COPY fire-it-up.sh /fire-it-up.sh
+USER odiuser
+CMD ["/fire-it-up.sh"]

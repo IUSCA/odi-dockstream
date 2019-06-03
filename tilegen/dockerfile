@@ -1,0 +1,28 @@
+FROM centos:7
+
+RUN yum -y install epel-release && yum -y makecache
+
+RUN yum -y install libxml2-python python-pip fpack gcc gcc-c++ python-devel atlas lapack-devel blas-devel libxml2-python libpng-devel libjpeg-turbo-devel
+
+RUN /usr/bin/pip install pika 'mailinglogger<5.0.0' pyfits
+
+
+ADD create-odiuser /root/create-odiuser
+RUN /root/create-odiuser
+RUN mkdir /usr/local/wn
+RUN mkdir /usr/local/listener
+COPY listener/listener.py /usr/local/listener/listener.py
+COPY odi /usr/local/odi
+COPY quickreduce /usr/local/quickreduce
+RUN mkdir -p /usr/local/var/log
+RUN chown -R oditest:odi /usr/local/var/log/
+RUN chown -R oditest:odi /usr/local/
+RUN /usr/bin/pip install pyfits scipy pillow astlib numpy pywcs numpy bottleneck
+RUN rpm -ivh 'https://www.astromatic.net/download/swarp/swarp-2.38.0-1.x86_64.rpm'
+RUN rpm -ivh 'http://www.astromatic.net/download/sextractor/sextractor-2.8.6-1.x86_64.rpm'
+RUN pip install scikit-image
+COPY deepzoom.py /deepzoom.py
+RUN cd /deepzoom.py && python setup.py install
+COPY fire-it-up.sh /fire-it-up.sh
+USER oditest
+CMD ["/fire-it-up.sh"]
